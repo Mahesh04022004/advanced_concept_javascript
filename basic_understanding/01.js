@@ -146,220 +146,31 @@
 // // OR (modern)
 // const deepCopy2 = structuredClone(obj1);
 
-// Part 2: Type Coercion
+// Shallow copy copies only the first level of an object (nested objects are still referenced), while deep copy recursively copies everything creating completely independent copies.
+
+
+// Coercion
 
 // Coercion is automatic/implicit type conversion JavaScript performs when operators are used with mismatched types.
 // Types of Coercion
-// Type	Description	Example
-// Implicit	Automatic by JavaScript	"5" + 1 → "51"
-// Explicit	Manual by developer	Number("5") → 5
-// 1. String Coercion
 
-// Triggered by: + operator when either operand is string, or template literals
-// javascript
 
-// // Implicit string coercion
-// "5" + 1;        // "51" (number becomes string)
-// "Hello" + true; // "Hellotrue"
-// "Value: " + null;  // "Value: null"
-// "Array: " + [1,2]; // "Array: 1,2"
+// var
 
-// // Template literals (also coerces)
-// `Value: ${42}`;     // "Value: 42"
-// `Result: ${true}`;  // "Result: true"
+//     Scope: Function-scoped and can "leak" out of blocks like if or for.
 
-// // Explicit string coercion
-// String(123);        // "123"
-// String(true);       // "true"
-// String(null);       // "null"
-// String(undefined);  // "undefined"
-// (123).toString();   // "123"
+//     Behavior: Allows redeclaration and is hoisted with an initial value of undefined.
 
-// Coercion rules to string:
-// Value	Becomes
-// Number	String representation
-// Boolean	"true" or "false"
-// null	"null"
-// undefined	"undefined"
-// Object	"[object Object]" (unless custom toString)
-// Array	Elements joined with commas
-// 2. Number Coercion
+// let
 
-// Triggered by: Arithmetic operators (-, *, /, %, **), comparison operators (>, <), unary +, -
-// javascript
+//     Scope: Block-scoped, meaning it only exists within the nearest curly braces {}.
 
-// // Implicit number coercion
-// "5" - 2;        // 3 (string to number)
-// "10" * "2";     // 20
-// "20" / "4";     // 5
-// "hello" - 1;    // NaN
+//     Behavior: Can be reassigned but not redeclared, making it the standard choice for variables that change.
 
-// // Unary operators
-// +"5";           // 5 (explicit via unary plus)
-// -"10";          // -10
+// const
 
-// // Comparison (not equality)
-// "5" > 3;        // true (coerces to number)
-// "10" > "2";     // false (string comparison - lexicographic!)
-// // For strings, compare character by character: "1" vs "2"
+//     Scope: Block-scoped, just like let, ensuring strict boundaries.
 
-// // Explicit number coercion
-// Number("123");   // 123
-// Number("12.5");  // 12.5
-// Number("");      // 0
-// Number("hello"); // NaN
-// Number(true);    // 1
-// Number(false);   // 0
-// Number(null);    // 0
-// Number(undefined); // NaN
+//     Behavior: Cannot be reassigned or redeclared, providing a "constant" reference to a value or object.
 
-// parseInt("123px");   // 123 (parses until non-digit)
-// parseFloat("12.5em"); // 12.5
-
-// Coercion rules to number:
-// Value	Becomes
-// undefined	NaN
-// null	0
-// true	1
-// false	0
-// "" (empty)	0
-// " " (spaces)	0
-// "123"	123
-// "12.5"	12.5
-// "12abc"	NaN
-// [null]	0
-// [1,2]	NaN
-// 3. Boolean Coercion
-
-// Triggered by: Logical operators (&&, ||, !), conditionals (if, while, for), ternary operator (? :)
-// javascript
-
-// // Truthy and Falsy values
-// // FALSY values (coerce to false):
-// false, 0, -0, 0n, "", null, undefined, NaN
-
-// // EVERYTHING else is TRUTHY:
-// true, 1, "hello", {}, [], function(){}, "0", "false"
-
-// // Implicit boolean coercion
-// if ("hello") {        // Truthy → executes
-//   console.log("runs");
-// }
-
-// !0;                   // true (0 is falsy)
-// !!"hello";           // true (double NOT: truthy)
-// !!"";                // false
-
-// // Explicit boolean coercion
-// Boolean("hello");    // true
-// Boolean(0);          // false
-// Boolean({});         // true
-// Boolean([]);         // true (empty array is truthy!)
-
-// // Logical operators return original values (not coerced)
-// const result = "hello" && 42;   // 42 (returns last truthy)
-// const result2 = 0 && "hello";   // 0 (returns first falsy)
-// const result3 = null || "default"; // "default"
-
-// 4. Equality Coercion (== vs ===)
-
-// This is the most common source of coercion confusion.
-// Operator	Name	Coercion
-// ===	Strict equality	NO coercion (check type AND value)
-// ==	Abstract equality	YES coercion (convert types then compare)
-
-// RULE: Always use === unless you explicitly need coercion!
-// How == works (abstract equality algorithm):
-// javascript
-
-// // 1. Same type → compare directly
-// "hello" == "hello";  // true
-// 42 == 42;            // true
-
-// // 2. Different types → coerce
-
-// // Number vs String
-// 5 == "5";            // true (string "5" → number 5)
-
-// // Boolean vs Anything
-// true == 1;           // true (true → 1)
-// false == 0;          // true (false → 0)
-// true == "1";         // true ("1" → 1, then true → 1)
-// false == "";         // true ("" → 0, false → 0)
-
-// // null vs undefined
-// null == undefined;   // true (special case)
-// null == 0;           // false
-// undefined == false;  // false
-
-// // Object vs Primitive
-// [1,2] == "1,2";      // true (array toString = "1,2")
-// [1] == 1;            // true ([1].toString = "1" → 1)
-// [] == 0;             // true ([] → "" → 0)
-// [] == false;         // true ([] → "" → 0, false → 0)
-// {} == "[object Object]"; // true
-
-// // NaN
-// NaN == NaN;          // false (NaN is never equal to anything)
-// NaN === NaN;         // false
-
-// Common == pitfalls to avoid:
-// javascript
-
-// // These are all TRUE (often unexpected)
-// 0 == false;          // true
-// "" == false;         // true
-// " \t\r\n" == 0;      // true (whitespace string → 0)
-// null == undefined;   // true
-// [1] == 1;            // true
-// "0" == false;        // true
-// "true" == true;      // false! ("true" string → NaN, true → 1)
-
-// 5. Special Coercion Cases
-// The + operator (string vs number coercion)
-// javascript
-
-// // When both operands are numbers → addition
-// 1 + 2;               // 3
-
-// // When any operand is string → concatenation
-// 1 + "2";             // "12"
-// "1" + 2;             // "12"
-
-// // With objects
-// {} + [];             // 0 (weird parsing edge case)
-// [] + {};             // "[object Object]"
-// [] + [];             // "" (empty string)
-
-// // Order matters (left to right)
-// 1 + 2 + "3";         // "33" (1+2=3, 3+"3"="33")
-// "1" + 2 + 3;         // "123" ("1"+2="12", "12"+3="123")
-
-// Coercion in logical operators
-// javascript
-
-// // && returns first falsy OR last truthy
-// 0 && "hello";        // 0
-// 1 && "hello";        // "hello"
-// "a" && "b";          // "b"
-
-// // || returns first truthy OR last falsy
-// 0 || "default";      // "default"
-// "hello" || "world";  // "hello"
-// null || undefined;   // undefined
-
-// // Useful patterns
-// const name = userInput || "Anonymous";  // Default value
-// isValid && submitForm();                 // Guard clause
-
-// Coercion in comparisons
-// javascript
-
-// // Strings compare lexicographically (character by character)
-// "10" > "2";          // false ("1" < "2")
-// "10" > 2;            // true (string coerces to number)
-
-// // Different types coerce to numbers (except for strings vs strings)
-// true > false;        // true (1 > 0)
-// null >= 0;           // true (null → 0)
-// undefined > 0;       // false (undefined → NaN)
+// Hoisting is a JavaScript mechanism where variable and function declarations are moved to the top of their containing scope (global or function) during the compile phase, before the code is executed.
